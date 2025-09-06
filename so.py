@@ -4,6 +4,7 @@ import pprint
 from itertools import permutations
 import time
 import sys
+import argparse
 #will need numpy installed
 from numpy import random
 import numpy as np
@@ -65,7 +66,7 @@ def calcSongsPerPerson(set):
 #input: numSongsPerPerson = dictionary of names, values = num of songs
 #input: setlist = dictionary setlist
 #output: list of setlist permutations, with assigned "score"
-def createSetlistPermutation(numSongsPerPerson, setlist):
+def createSetlistPermutation(numSongsPerPerson, setlist, duration):
     perm = permutations(setlist)
     #row = one possible permutation of setlist order
     maxValue = 0
@@ -96,7 +97,7 @@ def createSetlistPermutation(numSongsPerPerson, setlist):
     else:
         keylist = list(setlist.keys())
         t = time.process_time()
-        while time.process_time() - t < 15:
+        while time.process_time() - t < duration:
             randomSet = np.random.permutation(keylist)
             row = list(randomSet)
             row = tuple(row)
@@ -134,21 +135,26 @@ def fileOutput(importFileName, minTotalSet, numSongs):
 
 def main():
     print("START")
-    arg = sys.argv[1]
-    t = time.process_time()
     
+    parser = argparse.ArgumentParser(description="Argument parser")
+    parser.add_argument("input_file", help="The input file to process")
+    parser.add_argument("-t", "--time",  type=int, default=15, help="How long to run the program (in seconds), if setlist is larger than 8 songs")
+    args = parser.parse_args()
+    
+    t = time.process_time()
+
     print("Creating Setlist Dictionary")
-    setlist = initSetlistDic(arg)
+    setlist = initSetlistDic(args.input_file)
     numSongs = numSongsInSetFcn(setlist)
     numSongsPerPerson = calcSongsPerPerson(setlist)
     
     print(str(numSongs) + " number of songs found")
     
     print("Creating Setlist Permutation")
-    minTotalSet = createSetlistPermutation(numSongsPerPerson, setlist)
+    minTotalSet = createSetlistPermutation(numSongsPerPerson, setlist, args.time)
     
     print("Creating Output File")
-    fileOutput(arg, minTotalSet, numSongs)
+    fileOutput(args.input_file, minTotalSet, numSongs)
     elapsed_time = time.process_time() - t
     print("Total Execution Time: " + str(elapsed_time))
     
